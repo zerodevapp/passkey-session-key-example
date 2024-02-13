@@ -3,7 +3,7 @@
 import { createKernelAccount, createKernelAccountClient, createZeroDevPaymasterClient } from '@zerodev/sdk'
 import { createPasskeyValidator } from '@zerodev/webauthn-validator'
 import React, { useState } from 'react'
-import { createPublicClient, http, zeroAddress, parseAbi } from "viem"
+import { createPublicClient, http, parseAbi, encodeFunctionData } from "viem"
 import { polygonMumbai } from 'viem/chains'
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import {
@@ -26,6 +26,9 @@ const contractABI = parseAbi([
 ])
 const sessionPrivateKey = generatePrivateKey()
 const sessionKeySigner = privateKeyToAccount(sessionPrivateKey)
+
+let sessionKeyAccount: any
+let kernelClient: any
 
 export default function Home() {
 
@@ -83,14 +86,14 @@ export default function Home() {
       },
     })
 
-    const sessionKeyAccount = await createKernelAccount(publicClient, {
+    sessionKeyAccount = await createKernelAccount(publicClient, {
       plugins: {
         sudo: passkeyValidator,
         regular: sessionKeyValidator,
       },
     })
 
-    const kernelClient = createKernelAccountClient({
+    kernelClient = createKernelAccountClient({
       account: sessionKeyAccount,
       chain: polygonMumbai,
       transport: http(BUNDLER_URL),
@@ -105,12 +108,23 @@ export default function Home() {
       }
     })
 
+    console.log('Register done')
+  }
+
+  // Function to be called when "Login" is clicked
+  const handleLogin = async () => {
+    console.log('Logging in with username:', username)
+
     const userOpHash = await kernelClient.sendUserOperation({
       userOperation: {
         callData: await sessionKeyAccount.encodeCallData({
-          to: zeroAddress,
+          to: contractAddress,
           value: BigInt(0),
-          data: "0x",
+          data: encodeFunctionData({
+            abi: contractABI,
+            functionName: "mint",
+            args: [sessionKeyAccount.address],
+          }),
         }),
       },
     })
@@ -118,24 +132,31 @@ export default function Home() {
     console.log("userOp hash:", userOpHash)
   }
 
-  // Function to be called when "Login" is clicked
-  const handleLogin = () => {
-    console.log('Logging in with username:', username)
-  }
-
   return (
-    <main className="flex min-h-screen items-center justify-center p-24">
+    <main className="flex min-h-screen items-center justify-center px-4 py-24">
       <div className="flex flex-col items-center gap-4">
         <input
           type="text"
           placeholder="Your username"
-          className="input"
-          value={username} // Controlled component
-          onChange={(e) => setUsername(e.target.value)} // Update state on input change
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          className="p-2 border border-gray-300 rounded-lg"
         />
         <div className="flex gap-2">
-          <button className="btn" onClick={handleRegister}>Register</button>
-          <button className="btn" onClick={handleLogin}>Login</button>
+          {/* Tailwind styles for Register button */}
+          <button
+            onClick={handleRegister}
+            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+          >
+            Register
+          </button>
+          {/* Tailwind styles for Login button */}
+          <button
+            onClick={handleLogin}
+            className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
+          >
+            Send UserOp
+          </button>
         </div>
       </div>
     </main>
