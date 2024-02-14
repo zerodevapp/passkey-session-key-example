@@ -1,7 +1,7 @@
 'use client'
 
 import { createKernelAccount, createKernelAccountClient, createZeroDevPaymasterClient } from '@zerodev/sdk'
-import { createPasskeyValidator, getPasskeyValidator } from '@zerodev/webauthn-validator'
+import { createPasskeyValidator, getPasskeyValidator } from '@zerodev/passkey-validator'
 import { bundlerActions } from 'permissionless'
 import React, { useState } from 'react'
 import { createPublicClient, http, parseAbi, encodeFunctionData } from "viem"
