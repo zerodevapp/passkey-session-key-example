@@ -197,7 +197,7 @@ export default function Home() {
           </h1>
           <div className="grid grid-cols-2 gap-12">
             <div className="text-lg">
-              <p>This demo showcases the ZeroDev <a href="https://docs.zerodev.app/sdk/plugins/passkey" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700">passkey validator</a> (which uses <a href="https://docs.zerodev.app/sdk/plugins/passkey" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700">ERC-7212</a> when available) combined with <a href="https://docs.zerodev.app/sdk/plugins/session-keys" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700">session keys</a>.</p>
+              <p>This demo showcases the ZeroDev <a href="https://docs.zerodev.app/sdk/plugins/passkeys" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700">passkey validator</a> (which uses <a href="https://docs.zerodev.app/sdk/plugins/passkey" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700">ERC-7212</a> when available) combined with <a href="https://docs.zerodev.app/sdk/plugins/session-keys" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700">session keys</a>.</p>
               <p className="mt-4">Steps:</p>
               <ul className="list-disc ml-8">
                 <li>Register (create a new passkey) or login (use an existing passkey).</li>
