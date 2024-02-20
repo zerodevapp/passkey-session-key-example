@@ -9,21 +9,18 @@ import { polygonMumbai, polygon } from 'viem/chains'
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import {
   signerToSessionKeyValidator,
-  ParamOperator,
-  serializeSessionKeyAccount,
-  deserializeSessionKeyAccount,
   oneAddress,
 } from "@zerodev/session-key"
 
-const BUNDLER_URL = 'https://rpc.zerodev.app/api/v2/bundler/b5486fa4-e3d9-450b-8428-646e757c10f6'
-const PAYMASTER_URL = 'https://rpc.zerodev.app/api/v2/paymaster/b5486fa4-e3d9-450b-8428-646e757c10f6'
-const PASSKEY_SERVER_URL = " https://passkeys.zerodev.app/api/v2/b5486fa4-e3d9-450b-8428-646e757c10f6"
-const CHAIN = polygonMumbai
+// const BUNDLER_URL = 'https://rpc.zerodev.app/api/v2/bundler/b5486fa4-e3d9-450b-8428-646e757c10f6'
+// const PAYMASTER_URL = 'https://rpc.zerodev.app/api/v2/paymaster/b5486fa4-e3d9-450b-8428-646e757c10f6'
+// const PASSKEY_SERVER_URL = " https://passkeys.zerodev.app/api/v2/b5486fa4-e3d9-450b-8428-646e757c10f6"
+// const CHAIN = polygonMumbai
 
-// const BUNDLER_URL = 'https://rpc.zerodev.app/api/v2/bundler/f5359ea1-5124-4051-af8f-220f34bf2f59'
-// const PAYMASTER_URL = 'https://rpc.zerodev.app/api/v2/paymaster/f5359ea1-5124-4051-af8f-220f34bf2f59'
-// const PASSKEY_SERVER_URL = " https://passkeys.zerodev.app/api/v2/f5359ea1-5124-4051-af8f-220f34bf2f59"
-// const CHAIN = polygon
+const BUNDLER_URL = 'https://rpc.zerodev.app/api/v2/bundler/f5359ea1-5124-4051-af8f-220f34bf2f59'
+const PAYMASTER_URL = 'https://rpc.zerodev.app/api/v2/paymaster/f5359ea1-5124-4051-af8f-220f34bf2f59'
+const PASSKEY_SERVER_URL = " https://passkeys.zerodev.app/api/v2/f5359ea1-5124-4051-af8f-220f34bf2f59"
+const CHAIN = polygon
 
 const contractAddress = "0x34bE7f35132E97915633BC1fc020364EA5134863"
 const contractABI = parseAbi([
@@ -44,6 +41,7 @@ export default function Home() {
 
   // State to store the input value
   const [username, setUsername] = useState('')
+  const [accountAddress, setAccountAddress] = useState('')
   const [isKernelClientReady, setIsKernelClientReady] = useState(false)
   const [isRegistering, setIsRegistering] = useState(false)
   const [isLoggingIn, setIsLoggingIn] = useState(false)
@@ -53,12 +51,6 @@ export default function Home() {
   const [userOpCount, setUserOpCount] = useState(0)
 
   const createAccountAndClient = async (passkeyValidator: any) => {
-    const masterAccount = await createKernelAccount(publicClient, {
-      plugins: {
-        sudo: passkeyValidator,
-      },
-    })
-
     const sessionKeyValidator = await signerToSessionKeyValidator(publicClient, {
       signer: sessionKeySigner,
       validatorData: {
@@ -75,14 +67,7 @@ export default function Home() {
             functionName: "mint",
             // An array of conditions, each corresponding to an argument for
             // the function.
-            args: [
-              {
-                // In this case, we are saying that the session key can only mint
-                // NFTs to the account itself
-                operator: ParamOperator.EQUAL,
-                value: masterAccount.address,
-              },
-            ],
+            args: [null],
           },
         ],
       },
@@ -111,6 +96,7 @@ export default function Home() {
     })
 
     setIsKernelClientReady(true)
+    setAccountAddress(sessionKeyAccount.address)
   }
 
   // Function to be called when "Register" is clicked
@@ -239,6 +225,13 @@ export default function Home() {
                 </div>
               </div>
               <div className="border-t-2 pt-4">
+                {accountAddress && (
+                  <div className="mb-2 text-center font-medium">
+                    Account Address: <a href={`https://jiffyscan.xyz/account/${accountAddress}`} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700">
+                      {accountAddress}
+                    </a>
+                  </div>
+                )}
                 <button
                   onClick={handleSendUserOp}
                   disabled={!isKernelClientReady || isSendingUserOp}
