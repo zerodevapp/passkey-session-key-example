@@ -120,10 +120,7 @@ export default function Home() {
 
     const passkeyValidator = await createPasskeyValidator(publicClient, {
       passkeyName: username,
-      registerOptionUrl: `${PASSKEY_SERVER_URL}/register/options`,
-      registerVerifyUrl: `${PASSKEY_SERVER_URL}/register/verify`,
-      signInitiateUrl: `${PASSKEY_SERVER_URL}/sign-initiate`,
-      signVerifyUrl: `${PASSKEY_SERVER_URL}/sign-verify`
+      passkeyServerUrl: PASSKEY_SERVER_URL,
     })
 
     await createAccountAndClient(passkeyValidator)
@@ -137,10 +134,7 @@ export default function Home() {
     setIsLoggingIn(true)
 
     const passkeyValidator = await getPasskeyValidator(publicClient, {
-      loginOptionUrl: `${PASSKEY_SERVER_URL}/login/options`,
-      loginVerifyUrl: `${PASSKEY_SERVER_URL}/login/verify`,
-      signInitiateUrl: `${PASSKEY_SERVER_URL}/sign-initiate`,
-      signVerifyUrl: `${PASSKEY_SERVER_URL}/sign-verify`
+      passkeyServerUrl: PASSKEY_SERVER_URL,
     })
 
     await createAccountAndClient(passkeyValidator)
