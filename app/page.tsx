@@ -200,8 +200,8 @@ export default function Home() {
               <p>This demo showcases the ZeroDev <a href="https://docs.zerodev.app/sdk/plugins/passkey" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700">passkey validator</a> (which uses <a href="https://docs.zerodev.app/sdk/plugins/passkey" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700">ERC-7212</a> when available) combined with <a href="https://docs.zerodev.app/sdk/plugins/session-keys" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700">session keys</a>.</p>
               <p className="mt-4">Steps:</p>
               <ul className="list-disc ml-8">
-                <li>Register (create a new passkey) or login (use an existing passkey)</li>
-                <li>Send a UserOp, and observe that the first UserOp takes a lot of gas
+                <li>Register (create a new passkey) or login (use an existing passkey).</li>
+                <li>Send a UserOp, and observe that the first UserOp takes a lot of gas.
                   <ul className="list-disc ml-4 mt-1">
                     <li>This is because we need to verify the passkey.</li>
                   </ul>
