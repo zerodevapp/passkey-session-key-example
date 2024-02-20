@@ -197,7 +197,7 @@ export default function Home() {
           </h1>
           <div className="grid grid-cols-2 gap-12">
             <div className="text-lg">
-              <p>This demo showcases ZeroDev's <a href="https://docs.zerodev.app/sdk/plugins/passkey" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700">passkey validator</a> (which uses <a href="https://docs.zerodev.app/sdk/plugins/passkey" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700">ERC-7212</a> when available) combined with <a href="https://docs.zerodev.app/sdk/plugins/session-keys" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700">session keys</a>.</p>
+              <p>This demo showcases the ZeroDev <a href="https://docs.zerodev.app/sdk/plugins/passkey" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700">passkey validator</a> (which uses <a href="https://docs.zerodev.app/sdk/plugins/passkey" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700">ERC-7212</a> when available) combined with <a href="https://docs.zerodev.app/sdk/plugins/session-keys" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700">session keys</a>.</p>
               <p className="mt-4">Steps:</p>
               <ul className="list-disc ml-8">
                 <li>Register (create a new passkey) or login (use an existing passkey)</li>
@@ -212,7 +212,7 @@ export default function Home() {
                   </ul>
                 </li>
               </ul>
-              <p className="mt-4">To sum up, by combining passkeys with session keys, we get the best of both worlds where the user's account is secured by their own passkey, but UserOps are still cheap due to using ECDSA session keys.</p>
+              <p className="mt-4">To sum up, by combining passkeys with session keys, we get the best of both worlds where the user account is secured by their own passkey, but UserOps are still cheap due to using ECDSA session keys.</p>
             </div>
             <div className="flex flex-col">
               <div className="grid grid-cols-2 gap-4 mb-4">
