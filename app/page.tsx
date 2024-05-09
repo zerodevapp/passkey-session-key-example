@@ -17,11 +17,11 @@ import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { signerToSessionKeyValidator, oneAddress } from "@zerodev/session-key"
 
 const BUNDLER_URL =
-    "https://rpc.zerodev.app/api/v2/bundler/ec9a8985-9972-42d4-9879-15e21e4fe3b6"
+    "https://rpc.zerodev.app/api/v2/bundler/354b2c5e-92ed-47b0-a90f-9c09d9f012e4"
 const PAYMASTER_URL =
-    "https://rpc.zerodev.app/api/v2/paymaster/ec9a8985-9972-42d4-9879-15e21e4fe3b6"
+    "https://rpc.zerodev.app/api/v2/paymaster/354b2c5e-92ed-47b0-a90f-9c09d9f012e4"
 const PASSKEY_SERVER_URL =
-    " https://passkeys.zerodev.app/api/v2/ec9a8985-9972-42d4-9879-15e21e4fe3b6"
+    " https://passkeys.zerodev.app/api/v2/354b2c5e-92ed-47b0-a90f-9c09d9f012e4"
 const CHAIN = sepolia
 
 const contractAddress = "0x34bE7f35132E97915633BC1fc020364EA5134863"
