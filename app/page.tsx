@@ -6,22 +6,26 @@ import {
     createZeroDevPaymasterClient
 } from "@zerodev/sdk"
 import {
-    createPasskeyValidator,
-    getPasskeyValidator
+    WebAuthnMode,
+    toPasskeyValidator,
+    toWebAuthnKey
 } from "@zerodev/passkey-validator"
-import { bundlerActions } from "permissionless"
+import { toPermissionValidator } from "@zerodev/permissions"
+import { toECDSASigner } from "@zerodev/permissions/signers"
+import { toSudoPolicy } from "@zerodev/permissions/policies"
+import { bundlerActions, ENTRYPOINT_ADDRESS_V07 } from "permissionless"
 import React, { useState } from "react"
 import { createPublicClient, http, parseAbi, encodeFunctionData } from "viem"
 import { sepolia } from "viem/chains"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
-import { signerToSessionKeyValidator, oneAddress } from "@zerodev/session-key"
 
 const BUNDLER_URL =
     "https://rpc.zerodev.app/api/v2/bundler/354b2c5e-92ed-47b0-a90f-9c09d9f012e4"
 const PAYMASTER_URL =
     "https://rpc.zerodev.app/api/v2/paymaster/354b2c5e-92ed-47b0-a90f-9c09d9f012e4"
 const PASSKEY_SERVER_URL =
-    " https://passkeys.zerodev.app/api/v2/354b2c5e-92ed-47b0-a90f-9c09d9f012e4"
+    " https://passkeys.zerodev.app/api/v3/354b2c5e-92ed-47b0-a90f-9c09d9f012e4"
+
 const CHAIN = sepolia
 
 const contractAddress = "0x34bE7f35132E97915633BC1fc020364EA5134863"
@@ -52,50 +56,45 @@ export default function Home() {
     const [userOpCount, setUserOpCount] = useState(0)
 
     const createAccountAndClient = async (passkeyValidator: any) => {
-        const sessionKeyValidator = await signerToSessionKeyValidator(
-            publicClient,
-            {
-                signer: sessionKeySigner,
-                validatorData: {
-                    paymaster: oneAddress,
-                    permissions: [
-                        {
-                            target: contractAddress,
-                            // Maximum value that can be transferred.  In this case we
-                            // set it to zero so that no value transfer is possible.
-                            valueLimit: BigInt(0),
-                            // Contract abi
-                            abi: contractABI,
-                            // Function name
-                            functionName: "mint",
-                            // An array of conditions, each corresponding to an argument for
-                            // the function.
-                            args: [null]
-                        }
-                    ]
-                }
-            }
-        )
+        const ecdsaSigner = await toECDSASigner({
+            signer: sessionKeySigner
+        })
+
+        const sudoPolicy = await toSudoPolicy({})
+
+        const permissionValidator = await toPermissionValidator(publicClient, {
+            signer: ecdsaSigner,
+            policies: [sudoPolicy],
+            entryPoint: ENTRYPOINT_ADDRESS_V07
+        })
 
         sessionKeyAccount = await createKernelAccount(publicClient, {
+            entryPoint: ENTRYPOINT_ADDRESS_V07,
             plugins: {
                 sudo: passkeyValidator,
-                regular: sessionKeyValidator
+                regular: permissionValidator
             }
         })
 
         kernelClient = createKernelAccountClient({
             account: sessionKeyAccount,
             chain: CHAIN,
-            transport: http(BUNDLER_URL),
-            sponsorUserOperation: async ({ userOperation }) => {
-                const zerodevPaymaster = createZeroDevPaymasterClient({
-                    chain: CHAIN,
-                    transport: http(PAYMASTER_URL)
-                })
-                return zerodevPaymaster.sponsorUserOperation({
-                    userOperation
-                })
+            bundlerTransport: http(BUNDLER_URL),
+            entryPoint: ENTRYPOINT_ADDRESS_V07,
+            middleware: {
+                sponsorUserOperation: async ({ userOperation }) => {
+                    const zeroDevPaymaster = await createZeroDevPaymasterClient(
+                        {
+                            chain: CHAIN,
+                            transport: http(PAYMASTER_URL),
+                            entryPoint: ENTRYPOINT_ADDRESS_V07
+                        }
+                    )
+                    return zeroDevPaymaster.sponsorUserOperation({
+                        userOperation,
+                        entryPoint: ENTRYPOINT_ADDRESS_V07
+                    })
+                }
             }
         })
 
@@ -108,9 +107,16 @@ export default function Home() {
         console.log("Registering with username:", username)
         setIsRegistering(true)
 
-        const passkeyValidator = await createPasskeyValidator(publicClient, {
+        const webAuthnKey = await toWebAuthnKey({
             passkeyName: username,
-            passkeyServerUrl: PASSKEY_SERVER_URL
+            passkeyServerUrl: PASSKEY_SERVER_URL,
+            mode: WebAuthnMode.Register
+        })
+
+        const passkeyValidator = await toPasskeyValidator(publicClient, {
+            webAuthnKey,
+            passkeyServerUrl: PASSKEY_SERVER_URL,
+            entryPoint: ENTRYPOINT_ADDRESS_V07
         })
 
         await createAccountAndClient(passkeyValidator)
@@ -119,12 +125,21 @@ export default function Home() {
         window.alert("Register done.  Try sending UserOps.")
     }
 
+    // Function to be called when "Login" is clicked
     const handleLogin = async () => {
         console.log("Logging in with username:", username)
         setIsLoggingIn(true)
 
-        const passkeyValidator = await getPasskeyValidator(publicClient, {
-            passkeyServerUrl: PASSKEY_SERVER_URL
+        const webAuthnKey = await toWebAuthnKey({
+            passkeyName: username,
+            passkeyServerUrl: PASSKEY_SERVER_URL,
+            mode: WebAuthnMode.Login
+        })
+
+        const passkeyValidator = await toPasskeyValidator(publicClient, {
+            webAuthnKey,
+            passkeyServerUrl: PASSKEY_SERVER_URL,
+            entryPoint: ENTRYPOINT_ADDRESS_V07
         })
 
         await createAccountAndClient(passkeyValidator)
@@ -133,7 +148,6 @@ export default function Home() {
         window.alert("Login done.  Try sending UserOps.")
     }
 
-    // Function to be called when "Login" is clicked
     const handleSendUserOp = async () => {
         setIsSendingUserOp(true)
         setUserOpStatus("Sending UserOp...")
@@ -142,13 +156,9 @@ export default function Home() {
         const userOpHash = await kernelClient.sendUserOperation({
             userOperation: {
                 callData: await sessionKeyAccount.encodeCallData({
-                    to: contractAddress,
+                    to: "0x0000000000000000000000000000000000000000",
                     value: BigInt(0),
-                    data: encodeFunctionData({
-                        abi: contractABI,
-                        functionName: "mint",
-                        args: [sessionKeyAccount.address]
-                    })
+                    data: "0x"
                 })
             }
         })
@@ -156,7 +166,9 @@ export default function Home() {
         setUserOpHash(userOpHash)
         console.log("waiting for userOp:", userOpHash)
 
-        const bundlerClient = kernelClient.extend(bundlerActions)
+        const bundlerClient = kernelClient.extend(
+            bundlerActions(ENTRYPOINT_ADDRESS_V07)
+        )
         await bundlerClient.waitForUserOperationReceipt({
             hash: userOpHash
         })
@@ -166,8 +178,8 @@ export default function Home() {
         // Update the message based on the count of UserOps
         const userOpMessage =
             userOpCount === 0
-                ? `First UserOp completed. <a href="https://jiffyscan.xyz/userOpHash/${userOpHash}?network=mumbai" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:text-blue-700">Click here to view.</a> <br> Now try sending another UserOp.`
-                : `UserOp completed. <a href="https://jiffyscan.xyz/userOpHash/${userOpHash}?network=mumbai" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:text-blue-700">Click here to view.</a> <br> Notice how this UserOp costs a lot less gas and requires no prompting.`
+                ? `First UserOp completed. <a href="https://jiffyscan.xyz/userOpHash/${userOpHash}?network=sepolia" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:text-blue-700">Click here to view.</a> <br> Now try sending another UserOp.`
+                : `UserOp completed. <a href="https://jiffyscan.xyz/userOpHash/${userOpHash}?network=sepolia" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:text-blue-700">Click here to view.</a> <br> Notice how this UserOp costs a lot less gas and requires no prompting.`
 
         setUserOpStatus(userOpMessage)
         setIsSendingUserOp(false)
